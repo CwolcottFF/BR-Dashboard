@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Freedom Forever - Escalation Management Hub</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Freedom Forever Clean White & Green Theme */
+            --ff-primary: #22c55e; /* Fresh green primary */
+            --ff-secondary: #16a34a; /* Darker green */
+            --ff-accent: #059669; /* Deep green accent */
+            --ff-success: #10b981; /* Success green */
+            --ff-warning: #f59e0b; /* Orange warning */
+            --ff-danger: #ef4444; /* Red alert */
+            --ff-light: #ffffff; /* Pure white */
+            --ff-gray-50: #f9fafb; /* Very light gray */
+            --ff-gray-100: #f3f4f6; /* Light gray */
+            --ff-gray-200: #e5e7eb; /* Border gray */
+            --ff-dark: #111827; /* Dark text */
+            
+            /* Text colors */
+            --text-primary: #111827; /* Dark gray text */
+            --text-secondary: #6b7280; /* Medium gray */
+            --text-muted: #9ca3af; /* Light gray */
+            --border: #e5e7eb; /* Light gray border */
+            --card-bg: #ffffff; /* Pure white cards */
+            --gradient-primary: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            --gradient-accent: linear-gradient(135deg, #059669 0%, #047857 100%);
+            --gradient-success: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            
+            /* Background */
+            --bg-primary: #f9fafb; /* Very light gray background */
+            --bg-secondary: #ffffff; /* White secondary background */
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            position: relative;
+        }
+
+        .header h1 {
+            font-family: 'Inter', sans-serif;
+            font-size: 3.5rem;
+            font-weight: 800;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+            letter-spacing: -0.02em;
+        }
+
+        .header .subtitle {
+            font-size: 1.3rem;
+            color: var(--text-secondary);
+            font-weight: 400;
+            margin-bottom: 0.5rem;
+        }
+
+        .header .timestamp {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .section-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 3rem 0 2rem 0;
+            color: var(--ff-primary);
+            text-align: center;
+            position: relative;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 3px;
+            background: var(--gradient-primary);
+            border-radius: 2px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 2.5rem 2rem;
+            border: 1px solid var(--border);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: var(--shadow);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--gradient-primary);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--ff-primary);
+        }
+
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            background: var(--gradient-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+        }
+
+        .stat-value {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            line-height: 1;
+            color: var(--text-primary);
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            font-weight: 500;
+            margin-bottom: 1rem;
+        }
+
+        .stat-change {
+            font-size: 0.9rem;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 600;
+        }
+
+        .change-low { background: rgba(16, 185, 129, 0.15); color: var(--ff-success); }
+        .change-average { background: rgba(245, 158, 11, 0.15); color: var(--ff-warning); }
+        .change-high { background: rgba(239, 68, 68, 0.15); color: var(--ff-danger); }
+        .change-steady { background: rgba(203, 213, 225, 0.15); color: var(--text-secondary); }
+
+        .workload-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .workload-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 2rem;
+            border: 1px solid var(--border);
+            backdrop-filter: blur(20px);
+            transition: all 0.3s ease;
+        }
+
+        .workload-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--ff-accent);
+        }
+
+        .low-workload { border-left: 4px solid var(--ff-success); }
+        .average-workload { border-left: 4px solid var(--ff-warning); }
+        .high-workload { border-left: 4px solid var(--ff-danger); }
+
+        .specialist-name {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--ff-accent);
+        }
+
+        .workload-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .workload-stat {
+            text-align: center;
+        }
+
+        .workload-stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.2rem;
+        }
+
+        .workload-stat-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-weight: 500;
+        }
+
+        .trend-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            padding: 0.5rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .charts-compact-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .chart-container-compact {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid var(--border);
+            backdrop-filter: blur(20px);
+            position: relative;
+            height: 280px;
+        }
+
+        .chart-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+            text-align: center;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 3rem;
+            margin-bottom: 3rem;
+        }
+
+        .chart-container {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 2.5rem;
+            border: 1px solid var(--border);
+            backdrop-filter: blur(20px);
+            position: relative;
+        }
+
+        .data-table-container .chart-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            color: var(--text-primary);
+            text-align: center;
+        }
+
+        .data-table-container {
+            grid-column: 1 / -1;
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 2.5rem;
+            border: 1px solid var(--border);
+            backdrop-filter: blur(20px);
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        .data-table th {
+            text-align: left;
+            padding: 1.5rem 1rem;
+            border-bottom: 2px solid var(--border);
+            color: var(--text-secondary);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .data-table td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+            transition: all 0.2s ease;
+        }
+
+        .data-table tr:hover {
+            background: rgba(30, 58, 138, 0.1);
+        }
+
+        .cost-high { color: var(--ff-danger); font-weight: 700; }
+        .cost-medium { color: var(--ff-warning); font-weight: 600; }
+        .cost-low { color: var(--ff-success); font-weight: 500; }
+
+        @media (max-width: 1400px) {
+            .charts-compact-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (max-width: 1200px) {
+            .dashboard-grid { grid-template-columns: 1fr; }
+            .charts-compact-grid { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 768px) {
+            .container { padding: 1rem; }
+            .header h1 { font-size: 2.5rem; }
+            .stats-grid { grid-template-columns: 1fr; }
+            .workload-grid { grid-template-columns: 1fr; }
+            .charts-compact-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>Freedom Forever</h1>
+            <p class="subtitle">Escalation Management Hub - Dec 16, 2025</p>
+            <p class="timestamp">Live workload & performance analytics</p>
+        </header>
+
+        <!-- SUMMARY METRICS -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">📋</div>
+                <div class="stat-value">394</div>
+                <div class="stat-label">Current Active Cases</div>
+                <div class="stat-change change-steady">Total pipeline</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">⚖️</div>
+                <div class="stat-value">42</div>
+                <div class="stat-label">Avg Cases per Specialist</div>
+                <div class="stat-change change-average">Average workload</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">⏰</div>
+                <div class="stat-value">102</div>
+                <div class="stat-label">Cases Over 90 Days</div>
+                <div class="stat-change change-high">26% of active pipeline</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">👥</div>
+                <div class="stat-value">9</div>
+                <div class="stat-label">Active Specialists</div>
+                <div class="stat-change change-steady">Current team</div>
+            </div>
+        </div>
+
+        <!-- SPECIALIST WORKLOAD SECTION -->
+        <h2 class="section-title">Specialist Workload Analytics</h2>
+
+        <div class="workload-grid" id="specialistWorkloads">
+            <!-- Specialist cards will be loaded here -->
+        </div>
+
+        <!-- TREND CHART SECTION -->
+        <h2 class="section-title">Performance Trends</h2>
+
+        <div class="charts-compact-grid">
+            <div class="chart-container-compact">
+                <h3 class="chart-title">Monthly Resolution Trend by Specialist</h3>
+                <canvas id="specialistTrendLine" height="200"></canvas>
+            </div>
+            <div class="chart-container-compact">
+                <h3 class="chart-title">Current Escalation Claim Types</h3>
+                <canvas id="claimTypesChart" height="200"></canvas>
+            </div>
+            <div class="chart-container-compact">
+                <h3 class="chart-title">Current Workload Distribution</h3>
+                <canvas id="workloadChart" height="200"></canvas>
+            </div>
+            <div class="chart-container-compact">
+                <h3 class="chart-title">Resolution Time vs Cost Analysis</h3>
+                <canvas id="timeVsCostChart" height="200"></canvas>
+            </div>
+            <div class="chart-container-compact">
+                <h3 class="chart-title">Efficiency Matrix</h3>
+                <canvas id="efficiencyChart" height="200"></canvas>
+            </div>
+        </div>
+
+        <!-- PERFORMANCE TABLE -->
+        <div class="data-table-container">
+            <h3 class="chart-title">Comprehensive Specialist Metrics</h3>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Specialist</th>
+                        <th>Active Load</th>
+                        <th>Avg Case Age</th>
+                        <th>6mo Resolved</th>
+                        <th>Monthly Avg</th>
+                        <th>Avg Cost</th>
+                        <th>Zero Cost Resolutions %</th>
+                        <th>Trend</th>
+                    </tr>
+                </thead>
+                <tbody id="specialistTableBody">
+                    <!-- Table rows will be loaded here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // ACCURATE WORKLOAD DATA - Dec 16, 2025 with Freedom Forever Branding
+        const specialistData = {
+            'Kriscely Aldama': {
+                active_tasks: 53,
+                total_resolved_6mo: 40,
+                avg_per_month: 6.7,
+                trend_direction: 'steady',
+                zero_cost_rate: 62.5,
+                avg_cost: 5569.20,
+                avg_resolution_days: 190.2,
+                avg_active_case_age: 172,
+                monthly_trend: [5, 8, 6, 4, 7, 10]
+            },
+            'Chase Albers': {
+                active_tasks: 48,
+                total_resolved_6mo: 138,
+                avg_per_month: 23.0,
+                trend_direction: 'steady',
+                zero_cost_rate: 92.0,
+                avg_cost: 141.04,
+                avg_resolution_days: 16.6,
+                avg_active_case_age: 92,
+                monthly_trend: [20, 25, 28, 22, 18, 25]
+            },
+            'Jaylin Boland': {
+                active_tasks: 47,
+                total_resolved_6mo: 59,
+                avg_per_month: 9.8,
+                trend_direction: 'steady',
+                zero_cost_rate: 78.0,
+                avg_cost: 1863.67,
+                avg_resolution_days: 105.2,
+                avg_active_case_age: 185,
+                monthly_trend: [8, 12, 10, 9, 11, 9]
+            },
+            'Stephanie Gold': {
+                active_tasks: 45,
+                total_resolved_6mo: 135,
+                avg_per_month: 22.5,
+                trend_direction: 'steady',
+                zero_cost_rate: 65.9,
+                avg_cost: 854.40,
+                avg_resolution_days: 60.8,
+                avg_active_case_age: 142,
+                monthly_trend: [18, 22, 25, 20, 24, 26]
+            },
+            'Lala Wheeler': {
+                active_tasks: 44,
+                total_resolved_6mo: 126,
+                avg_per_month: 21.0,
+                trend_direction: 'down',
+                zero_cost_rate: 85.7,
+                avg_cost: 365.53,
+                avg_resolution_days: 56.5,
+                avg_active_case_age: 56,
+                monthly_trend: [25, 24, 20, 18, 19, 20]
+            },
+            'Janeth Moyal': {
+                active_tasks: 38,
+                total_resolved_6mo: 133,
+                avg_per_month: 22.2,
+                trend_direction: 'down',
+                zero_cost_rate: 73.7,
+                avg_cost: 838.34,
+                avg_resolution_days: 113.0,
+                avg_active_case_age: 112,
+                monthly_trend: [28, 26, 22, 20, 19, 18]
+            },
+            'James Gutcher': {
+                active_tasks: 38,
+                total_resolved_6mo: 139,
+                avg_per_month: 23.2,
+                trend_direction: 'up',
+                zero_cost_rate: 89.2,
+                avg_cost: 889.08,
+                avg_resolution_days: 15.1,
+                avg_active_case_age: 61,
+                monthly_trend: [18, 20, 22, 25, 28, 26]
+            },
+            'Jennifer Burns': {
+                active_tasks: 33,
+                total_resolved_6mo: 79,
+                avg_per_month: 13.2,
+                trend_direction: 'steady',
+                zero_cost_rate: 83.5,
+                avg_cost: 3838.30,
+                avg_resolution_days: 86.9,
+                avg_active_case_age: 150,
+                monthly_trend: [12, 14, 13, 12, 15, 13]
+            },
+            'Connor McNeill': {
+                active_tasks: 29,
+                total_resolved_6mo: 1,
+                avg_per_month: 0.2,
+                trend_direction: 'steady',
+                zero_cost_rate: 100.0,
+                avg_cost: 0.0,
+                avg_resolution_days: 92.0,
+                avg_active_case_age: 45,
+                monthly_trend: [0, 0, 0, 0, 0, 1]
+            },
+            'Thomas Walters': {
+                active_tasks: 19,
+                total_resolved_6mo: 135,
+                avg_per_month: 22.5,
+                trend_direction: 'steady',
+                zero_cost_rate: 67.4,
+                avg_cost: 2647.27,
+                avg_resolution_days: 62.6,
+                avg_active_case_age: 156,
+                monthly_trend: [22, 20, 24, 23, 21, 25]
+            }
+        };
+
+        // REAL ESCALATION CLAIMS DATA from Query Lab (Dec 16, 2025)
+        const claimTypesData = {
+            'Damages': 807,           // 67.8% - Includes roof leaks and property damage
+            'Customer Concern': 154,  // 12.9% - Customer concerns and disputes
+            'Other': 137,            // 11.5% - Other claim types
+            'Sales': 74,             // 6.2% - Sales-related issues
+            'Delays': 15,            // 1.3% - Project delays
+            'System': 7              // 0.6% - System-related issues
+        };
+
+        function getWorkloadCategory(activeCount) {
+            if (activeCount >= 50) return { class: 'high-workload', label: 'High Workload', color: 'change-high' };
+            if (activeCount >= 36) return { class: 'average-workload', label: 'Average Workload', color: 'change-average' };
+            return { class: 'low-workload', label: 'Low Workload', color: 'change-low' };
+        }
+
+        function loadSpecialistWorkloads() {
+            const container = document.getElementById('specialistWorkloads');
+            container.innerHTML = '';
+            
+            Object.entries(specialistData).forEach(([name, data]) => {
+                const workloadCat = getWorkloadCategory(data.active_tasks);
+                const trendIcon = data.trend_direction === 'up' ? 'Trending Up' : 
+                                 data.trend_direction === 'down' ? 'Trending Down' : 'Steady';
+                
+                const card = document.createElement('div');
+                card.className = `workload-card ${workloadCat.class}`;
+                card.innerHTML = `
+                    <div class="specialist-name">${name}</div>
+                    <div class="workload-stats">
+                        <div class="workload-stat">
+                            <div class="workload-stat-value">${data.active_tasks}</div>
+                            <div class="workload-stat-label">Active Cases</div>
+                        </div>
+                        <div class="workload-stat">
+                            <div class="workload-stat-value">${data.avg_active_case_age || '0'}d</div>
+                            <div class="workload-stat-label">Avg Case Age</div>
+                        </div>
+                    </div>
+                    <div class="workload-stats">
+                        <div class="workload-stat">
+                            <div class="workload-stat-value">${data.total_resolved_6mo}</div>
+                            <div class="workload-stat-label">6mo Resolved</div>
+                        </div>
+                        <div class="workload-stat">
+                            <div class="workload-stat-value">${data.avg_per_month?.toFixed(1) || '0'}</div>
+                            <div class="workload-stat-label">Monthly Avg</div>
+                        </div>
+                    </div>
+                    <div class="workload-stats">
+                        <div class="workload-stat">
+                            <div class="workload-stat-value">$${data.avg_cost?.toLocaleString(undefined, {maximumFractionDigits: 0}) || '0'}</div>
+                            <div class="workload-stat-label">Avg Cost</div>
+                        </div>
+                        <div class="workload-stat">
+                            <div class="workload-stat-value">${data.zero_cost_rate?.toFixed(0) || '0'}%</div>
+                            <div class="workload-stat-label">Zero Cost Resolutions</div>
+                        </div>
+                    </div>
+                    <div class="trend-indicator ${workloadCat.color}">
+                        ${workloadCat.label}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function initializeCharts() {
+            createClaimTypesChart();
+            createSpecialistTrendLine();
+            createWorkloadChart();
+            createTimeVsCostChart();
+            createEfficiencyChart();
+            loadSpecialistTable();
+        }
+
+        function createClaimTypesChart() {
+            const ctx = document.getElementById('claimTypesChart').getContext('2d');
+            const labels = Object.keys(claimTypesData);
+            const data = Object.values(claimTypesData);
+            const total = data.reduce((sum, value) => sum + value, 0);
+
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: [
+                            '#ef4444', // Damages - Red (critical)
+                            '#22c55e', // Customer Concern - Primary green
+                            '#6b7280', // Other - Gray
+                            '#f59e0b', // Sales - Orange
+                            '#8b5cf6', // Delays - Purple
+                            '#10b981'  // System - Success green
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#ffffff',
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { 
+                            position: 'bottom',
+                            labels: { 
+                                color: '#374151', 
+                                padding: 15, 
+                                font: { family: 'Inter', weight: '500', size: 11 },
+                                generateLabels: function(chart) {
+                                    const data = chart.data;
+                                    if (data.labels.length && data.datasets.length) {
+                                        return data.labels.map((label, i) => {
+                                            const count = data.datasets[0].data[i];
+                                            const percentage = ((count / total) * 100).toFixed(1);
+                                            return {
+                                                text: `${label}: ${count} (${percentage}%)`,
+                                                fillStyle: data.datasets[0].backgroundColor[i],
+                                                hidden: false,
+                                                index: i
+                                            };
+                                        });
+                                    }
+                                    return [];
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const percentage = ((context.parsed / total) * 100).toFixed(1);
+                                    return `${context.label}: ${context.parsed} cases (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createSpecialistTrendLine() {
+            const ctx = document.getElementById('specialistTrendLine').getContext('2d');
+            const months = ['Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            
+            const datasets = [];
+            const colors = ['#1e3a8a', '#0369a1', '#f59e0b', '#10b981', '#ef4444', '#8b5cf6', '#06b6d4', '#84cc16', '#f97316', '#ec4899'];
+            
+            Object.entries(specialistData).slice(0, 5).forEach(([name, data], index) => {
+                datasets.push({
+                    label: name.split(' ')[0],
+                    data: data.monthly_trend,
+                    borderColor: colors[index],
+                    backgroundColor: colors[index] + '20',
+                    tension: 0.4,
+                    borderWidth: 3,
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                });
+            });
+
+            new Chart(ctx, {
+                type: 'line',
+                data: { labels: months, datasets: datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { 
+                            labels: { color: '#cbd5e1', font: { family: 'Inter', weight: '500', size: 11 } }
+                        }
+                    },
+                    scales: {
+                        x: { 
+                            ticks: { color: '#cbd5e1', font: { size: 10 } }, 
+                            grid: { color: 'rgba(203, 213, 225, 0.1)' }
+                        },
+                        y: { 
+                            ticks: { color: '#cbd5e1', font: { size: 10 } }, 
+                            grid: { color: 'rgba(203, 213, 225, 0.1)' },
+                            title: { display: true, text: 'Cases Resolved', color: '#cbd5e1', font: { size: 11 } }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createWorkloadChart() {
+            const ctx = document.getElementById('workloadChart').getContext('2d');
+            const specialists = Object.keys(specialistData);
+            const workloads = Object.values(specialistData).map(s => s.active_tasks);
+
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: specialists.map(s => s.split(' ')[0]),
+                    datasets: [{
+                        data: workloads,
+                        backgroundColor: [
+                            '#22c55e', // Primary green
+                            '#16a34a', // Darker green
+                            '#059669', // Deep green
+                            '#10b981', // Success green
+                            '#34d399', // Light green
+                            '#6ee7b7', // Very light green
+                            '#a7f3d0', // Mint green
+                            '#d1fae5', // Pale green
+                            '#f0fdf4', // Very pale green
+                            '#6b7280'  // Gray for last
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { 
+                            position: 'bottom',
+                            labels: { 
+                                color: '#374151', 
+                                padding: 15, 
+                                font: { family: 'Inter', weight: '500', size: 11 },
+                                usePointStyle: true
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createTimeVsCostChart() {
+            const ctx = document.getElementById('timeVsCostChart').getContext('2d');
+            const specialists = Object.keys(specialistData);
+            
+            new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: 'Specialists',
+                        data: specialists.map((name) => ({
+                            x: specialistData[name].avg_resolution_days || 0,
+                            y: specialistData[name].avg_cost || 0,
+                            specialist: name.split(' ')[0]
+                        })),
+                        backgroundColor: specialists.map((name) => {
+                            const time = specialistData[name].avg_resolution_days || 0;
+                            const cost = specialistData[name].avg_cost || 0;
+                            if (time < 30 && cost < 500) return '#10b981'; // Green for good performance
+                            if (time > 60 || cost > 2000) return '#ef4444'; // Red for concerning performance
+                            return '#f59e0b'; // Orange for average
+                        }),
+                        pointRadius: 8,
+                        pointHoverRadius: 12
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { labels: { color: '#374151' } },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.raw.specialist}: ${context.parsed.x.toFixed(0)} days, $${context.parsed.y.toLocaleString()}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { 
+                            title: { display: true, text: 'Avg Resolution Time (Days)', color: '#374151' },
+                            ticks: { color: '#6b7280' }, 
+                            grid: { color: 'rgba(107, 114, 128, 0.1)' } 
+                        },
+                        y: { 
+                            title: { display: true, text: 'Avg Cost ($)', color: '#374151' },
+                            ticks: { color: '#6b7280' }, 
+                            grid: { color: 'rgba(107, 114, 128, 0.1)' } 
+                        }
+                    }
+                }
+            });
+        }
+
+        function createEfficiencyChart() {
+            const ctx = document.getElementById('efficiencyChart').getContext('2d');
+            const specialists = Object.keys(specialistData);
+            const efficiency = specialists.map(name => specialistData[name].zero_cost_rate || 0);
+            const volumes = specialists.map(name => specialistData[name].total_resolved_6mo || 0);
+
+            new Chart(ctx, {
+                type: 'bubble',
+                data: {
+                    datasets: [{
+                        label: 'Efficiency vs Volume',
+                        data: specialists.map((name, i) => ({
+                            x: efficiency[i],
+                            y: volumes[i],
+                            r: (specialistData[name].active_tasks || 0) / 3,
+                            specialist: name.split(' ')[0]
+                        })),
+                        backgroundColor: 'rgba(34, 197, 94, 0.6)', // Green with transparency
+                        borderColor: '#22c55e', // Green border
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { labels: { color: '#374151' } },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.raw.specialist}: ${context.parsed.x}% zero cost, ${context.parsed.y} resolved`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { 
+                            title: { display: true, text: 'Zero Cost Rate (%)', color: '#374151' },
+                            ticks: { color: '#6b7280' }, 
+                            grid: { color: 'rgba(107, 114, 128, 0.1)' } 
+                        },
+                        y: { 
+                            title: { display: true, text: '6-Month Resolved Cases', color: '#374151' },
+                            ticks: { color: '#6b7280' }, 
+                            grid: { color: 'rgba(107, 114, 128, 0.1)' } 
+                        }
+                    }
+                }
+            });
+        }
+
+        function loadSpecialistTable() {
+            const tbody = document.getElementById('specialistTableBody');
+            
+            tbody.innerHTML = Object.entries(specialistData).map(([name, data]) => {
+                const workloadCat = getWorkloadCategory(data.active_tasks);
+                const trendIcon = data.trend_direction === 'up' ? 'Up' : 
+                                 data.trend_direction === 'down' ? 'Down' : 'Steady';
+                
+                const costClass = (data.avg_cost || 0) > 2000 ? 'cost-high' : 
+                                 (data.avg_cost || 0) > 500 ? 'cost-medium' : 'cost-low';
+                
+                return `
+                    <tr>
+                        <td><strong>${name}</strong></td>
+                        <td class="${workloadCat.class === 'high-workload' ? 'cost-high' : workloadCat.class === 'average-workload' ? 'cost-medium' : 'cost-low'}">${data.active_tasks}</td>
+                        <td>${data.avg_active_case_age || '0'} days</td>
+                        <td>${data.total_resolved_6mo}</td>
+                        <td>${data.avg_per_month?.toFixed(1) || '0'}</td>
+                        <td class="${costClass}">$${(data.avg_cost || 0).toLocaleString(undefined, {maximumFractionDigits: 0})}</td>
+                        <td>${(data.zero_cost_rate || 0).toFixed(1)}%</td>
+                        <td>${trendIcon}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSpecialistWorkloads();
+            initializeCharts();
+        });
+    </script>
+</body>
+</html>
